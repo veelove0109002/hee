@@ -41,11 +41,13 @@ return view.extend({
 
 	render: function() {
 		var self = this;
+		var styleEl = E('style', {}, "\n.cbi-map { max-width: 1000px; margin: 0 auto; padding: 16px; }\n.cbi-map h2 { font-size: 20px; font-weight: 700; color: #111827; margin: 0; }\n.cbi-section-descr { color: #6b7280; margin-top: 6px; }\n.toolbar { margin: 12px 0; display: flex; gap: 10px; align-items: center; }\n.toolbar .input { flex: 1; appearance: none; border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; }\n.toolbar .input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }\n.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-top: 12px; }\n.pkg-card { display: flex; flex-direction: column; align-items: flex-start; padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; box-shadow: 0 2px 12px rgba(17,24,39,0.06); transition: box-shadow .2s, transform .2s; }\n.pkg-card:hover { box-shadow: 0 6px 18px rgba(17,24,39,0.10); transform: translateY(-2px); }\n.pkg-card img { border-radius: 10px; background: #f3f4f6; object-fit: contain; }\n.pkg-title { font-weight: 600; color: #111827; margin-top: 8px; word-break: break-all; }\n.pkg-ver { font-size: 12px; color: #6b7280; margin-top: 2px; }\n.options { margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }\n.switch { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #374151; }\n.btn { appearance: none; border: 1px solid #d1d5db; padding: 8px 14px; border-radius: 10px; background: #fff; cursor: pointer; font-weight: 600; }\n.btn:hover { background: #f9fafb; }\n.cbi-button-remove { border-color: #ef4444; color: #b91c1c; }\n.modal-log { max-height: 300px; overflow: auto; background: #0b1024; color: #cbd5e1; padding: 12px; border-radius: 10px; }\n");
+		document.head && document.head.appendChild(styleEl);
 		var root = E('div', { 'class': 'cbi-map' }, [
 			E('h2', {}, _('Uninstall Packages')),
 			E('div', { 'class': 'cbi-section-descr' }, _('选择要卸载的已安装软件包。可选地同时删除其配置文件。')),
-			E('div', { 'style': 'margin:8px 0; display:flex; gap:8px; align-items:center;' }, [
-				E('input', { id: 'filter', type: 'text', placeholder: _('筛选包名…'), 'style': 'flex:1;' })
+			E('div', { 'class': 'toolbar' }, [
+				E('input', { id: 'filter', type: 'text', placeholder: _('筛选包名…'), 'class': 'input' })
 			])
 		]);
 
@@ -60,18 +62,18 @@ return view.extend({
 		root.appendChild(grid);
 
 		function renderCard(pkg){
-			var img = E('img', { src: packageIcon(pkg.name), alt: pkg.name, width: 48, height: 48, 'style': 'border-radius:8px;background:#f3f4f6;object-fit:contain;' });
+			var img = E('img', { src: packageIcon(pkg.name), alt: pkg.name, width: 56, height: 56 });
 			img.addEventListener('error', function(){ img.src = DEFAULT_ICON; });
-			var title = E('div', { 'style': 'font-weight:600;color:#111827;margin-top:6px;word-break:break-all;' }, pkg.name);
-			var ver = E('div', { 'style': 'font-size:12px;color:#6b7280;margin-top:2px;' }, (pkg.version || ''));
+			var title = E('div', { 'class': 'pkg-title' }, pkg.name);
+			var ver = E('div', { 'class': 'pkg-ver' }, (pkg.version || ''));
 			var purgeEl = E('input', { type: 'checkbox' });
 			var purgeLabel = E('label', { 'style': 'display:flex; align-items:center; gap:6px;' }, [ purgeEl, _('删除配置文件') ]);
 			var depsEl = E('input', { type: 'checkbox' });
 			var depsLabel = E('label', { 'style': 'display:flex; align-items:center; gap:6px;' }, [ depsEl, _('同时卸载相关依赖') ]);
-			var optionsRow = E('div', { 'style': 'margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;' }, [ purgeLabel, depsLabel ]);
-			var btn = E('button', { type: 'button', 'class': 'btn cbi-button cbi-button-remove', 'style': 'margin-top:8px;' }, _('卸载'));
+			var optionsRow = E('div', { 'class': 'options' }, [ purgeLabel, depsLabel ]);
+			var btn = E('button', { type: 'button', 'class': 'btn cbi-button cbi-button-remove' }, _('卸载'));
 			btn.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); uninstall(pkg.name, purgeEl.checked, depsEl.checked); });
-			var card = E('div', { 'class': 'pkg-card', 'style': 'display:flex;flex-direction:column;align-items:flex-start;padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.04);' }, [img, title, ver, optionsRow, btn]);
+			var card = E('div', { 'class': 'pkg-card' }, [img, title, ver, optionsRow, btn]);
 			return card;
 		}
 
@@ -94,7 +96,7 @@ return view.extend({
 				if (!ok) return;
 
 				// 日志弹窗
-				var log = E('pre', { 'style': 'max-height:260px;overflow:auto;background:#0b1024;color:#cbd5e1;padding:10px;border-radius:8px;' }, '');
+				var log = E('pre', { 'class': 'modal-log' }, '');
 				var closeBtn = E('button', { 'class': 'btn', disabled: true }, _('关闭'));
 				var modal = ui.showModal(_('正在卸载…') + ' ' + name, [
 					log,
